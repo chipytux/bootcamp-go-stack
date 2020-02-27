@@ -39,7 +39,7 @@ class UserController {
         .when('oldPassword', (oldPass, field) => oldPass ? field.required() : field),
       confirmPassword: Yup.string()
         .when('password', (pass, field) =>
-          pass ? field.required().oneOf([Yup.ref('password')]): field)
+          pass ? field.required().oneOf([Yup.ref('password')]) : field)
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -61,9 +61,13 @@ class UserController {
       return res.status(401).json({ error: 'Password doest not match' });
     }
 
-    const { id, name, provider } = await user.update(req.body);
-
-    return res.json({ id, name, email, provider });
+    try {
+      const { id, name, provider } = await user.update(req.body);
+      return res.json({ id, name, email, provider });
+    }
+    catch(error){
+      return res.status(400).json(error)
+    }
   }
 }
 
