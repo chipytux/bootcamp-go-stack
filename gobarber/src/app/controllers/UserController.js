@@ -1,10 +1,10 @@
 import * as Yup from 'yup';
 
 import User from '../models/User';
+import File from '../models/File';
 
 class UserController {
   async store(req, res) {
-
     const schema = Yup.object().shape({
       name: Yup.string().required(),
       email: Yup.string().required(),
@@ -23,8 +23,19 @@ class UserController {
     return res.json(user);
   }
 
-  async show(_req, res) {
-    const user = await User.findAll();
+  async index(req, res) {
+    const { page = 1, limit = 10 } = req.query;
+
+    const user = await User.findAll({
+      limit,
+      offset: (page - 1) * limit,
+      attributes: ['id', 'name', 'email', 'provider'],
+      include: [{
+        model: File,
+        as: 'avatar',
+        attributes: ['id', 'url', 'path']
+      }]
+    });
     return res.json(user);
   }
 
@@ -65,7 +76,7 @@ class UserController {
       const { id, name, provider } = await user.update(req.body);
       return res.json({ id, name, email, provider });
     }
-    catch(error){
+    catch (error) {
       return res.status(400).json(error)
     }
   }
