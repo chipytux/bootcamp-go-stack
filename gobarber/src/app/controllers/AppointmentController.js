@@ -1,8 +1,10 @@
-import { isBefore, parseISO, startOfHour } from 'date-fns';
+import { format, isBefore, parseISO, startOfHour } from 'date-fns';
+import pt from 'date-fns/locale/pt';
 import * as Yup from 'yup';
 import Appointment from '../models/Appointment';
-import User from '../models/User';
 import File from '../models/File';
+import User from '../models/User';
+import Notification from '../schemas/Notifications';
 
 
 class AppointmentController {
@@ -38,7 +40,6 @@ class AppointmentController {
     const schema = Yup.object().shape({
       provider_id: Yup.number().required(),
       date: Yup.date().required(),
-      user_id: Yup.number(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -50,8 +51,8 @@ class AppointmentController {
     /*
     * Check if  provider_id is a provider
     */
-    const isProvider = await User.findOne({ where: { id: provider_id, provider: true } })
-    if (!isProvider) {
+    const checkIsProvider = await User.findOne({ where: { id: provider_id, provider: true } })
+    if (!checkIsProvider) {
       return res.status(400).json({ error: 'You can only create appointments with providers' });
     }
 
@@ -79,6 +80,23 @@ class AppointmentController {
     }
 
     const appointment = await Appointment.create({ user_id: req.userId, provider_id, date: hourStart });
+
+
+    /*
+    * Notify appointment Provider
+    */
+    const { name } = checkIsProvider;
+    const formattedDate = format(
+      hourStart,
+      "dd 'de' MMMM', às' h:mm'h'",
+      { locale: pt }
+    );
+
+    await Notification.create({
+      content: `Novo agendamento de ${name} dia ${formattedDate}`,
+      user: provider_id,
+    });
+
     return res.json(appointment);
   }
 }
