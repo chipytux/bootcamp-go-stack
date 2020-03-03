@@ -1,3 +1,11 @@
 {
-    "editor.autoSave": "on"
+    "editor.autoSave": "on",
+    "sqltools.connections": [
+        {
+            "database": "${workspaceFolder}/database.sqlite",
+            "dialect": "SQLite",
+            "name": "sqlite"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
 }
