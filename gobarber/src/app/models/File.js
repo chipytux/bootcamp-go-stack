@@ -8,8 +8,10 @@ class File extends Model {
         path: Sequelize.STRING,
         url: {
           type: Sequelize.VIRTUAL,
-          get(){return `/files/${this.path}`}
-        }
+          get() {
+            return `/files/${this.path}`;
+          },
+        },
       },
       {
         sequelize,

@@ -8,11 +8,13 @@ class UserController {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
       email: Yup.string().required(),
-      password: Yup.string().required().min(6)
+      password: Yup.string()
+        .required()
+        .min(6),
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: "Validation Fails" })
+      return res.status(400).json({ error: 'Validation Fails' });
     }
 
     const userExist = await User.findOne({ where: { email: req.body.email } });
@@ -30,31 +32,34 @@ class UserController {
       limit,
       offset: (page - 1) * limit,
       attributes: ['id', 'name', 'email', 'provider'],
-      include: [{
-        model: File,
-        as: 'avatar',
-        attributes: ['id', 'url', 'path']
-      }]
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['id', 'url', 'path'],
+        },
+      ],
     });
     return res.json(user);
   }
 
   async update(req, res) {
-
     const schema = Yup.object().shape({
       name: Yup.string(),
       email: Yup.string(),
       oldPassword: Yup.string().min(6),
       password: Yup.string()
         .min(6)
-        .when('oldPassword', (oldPass, field) => oldPass ? field.required() : field),
-      confirmPassword: Yup.string()
-        .when('password', (pass, field) =>
-          pass ? field.required().oneOf([Yup.ref('password')]) : field)
+        .when('oldPassword', (oldPass, field) =>
+          oldPass ? field.required() : field
+        ),
+      confirmPassword: Yup.string().when('password', (pass, field) =>
+        pass ? field.required().oneOf([Yup.ref('password')]) : field
+      ),
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: "Validation Fails" })
+      return res.status(400).json({ error: 'Validation Fails' });
     }
 
     const { email, oldPassword } = req.body;
@@ -75,9 +80,8 @@ class UserController {
     try {
       const { id, name, provider } = await user.update(req.body);
       return res.json({ id, name, email, provider });
-    }
-    catch (error) {
-      return res.status(400).json(error)
+    } catch (error) {
+      return res.status(400).json(error);
     }
   }
 }
